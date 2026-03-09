@@ -14,6 +14,7 @@
         "laravel/tinker": "^2.10.1",
         "lowel/laravel-service-maker": "^1.0",
         "lowel/telepath": "^0.6.0",
+        "norkunas/youtube-dl-php": "dev-master",
         "spatie/laravel-data": "^4.20"
     },
     "require-dev": {
