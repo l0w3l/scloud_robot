@@ -1,0 +1,69 @@
+services:
+    scdl_ebot-nginx:
+        build: ./nginx
+        ports:
+            - "${APP_NGINX_HTTP:-80}:80"
+            - "${APP_NGINX_HTTPS:-443}:443"
+        networks:
+            - backend
+        volumes:
+            - "${STORAGE_APP}:/var/www/html"
+            - "${STORAGE_NGINX}/logs/:/var/log/nginx/"
+            - ./nginx/config/nginx.conf:/etc/nginx/nginx.conf:ro
+            - ./nginx/config/sites-available/:/etc/nginx/sites-available/
+            - ./nginx/config/sites-enabled/:/etc/nginx/sites-enabled/
+            - ./nginx/config/nginxconfig.io/:/etc/nginx/nginxconfig.io/
+
+    scdl_ebot-fpm:
+        build:
+            context: ./fpm
+            args:
+                HOST_UID: ${HOST_UID}
+                HOST_GID: ${HOST_GID}
+        networks:
+            - backend
+        volumes:
+            - "${STORAGE_APP}:/var/www/html"
+            - ./fpm/config/www.conf:/usr/local/etc/php-fpm.d/www.conf
+
+    scdl_ebot-setup:
+        build: ./setup
+        networks:
+            - backend
+        restart: no
+        entrypoint: ["bash", "/usr/local/bin/scripts/setup.sh"]
+        volumes:
+            - "${STORAGE_APP}:/var/www/html"
+
+    scdl_ebot-scheduler:
+        build:
+            context: ./scheduler
+            args:
+                HOST_UID: ${HOST_UID}
+                HOST_GID: ${HOST_GID}
+        networks:
+            - backend
+        restart: always
+        entrypoint: [ "bash", "/usr/local/bin/scripts/laravel_scheduler.sh" ]
+        volumes:
+            - "${STORAGE_APP}:/var/www/html"
+
+    scdl_ebot-queue:
+        build:
+            context: ./queue
+            args:
+                HOST_UID: ${HOST_UID}
+                HOST_GID: ${HOST_GID}
+        logging:
+            options:
+                max-size: "10m"
+                max-file: "3"
+        networks:
+            - backend
+        restart: always
+        entrypoint: [ "bash", "/usr/local/bin/scripts/laravel_queue.sh" ]
+        volumes:
+            - "${STORAGE_APP}:/var/www/html"
+networks:
+    backend:
+        driver: bridge
