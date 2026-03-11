@@ -24,7 +24,7 @@ class DownloadSoundcloudTrackHandler extends AbstractTelegramHandler
 			$rawText = $message->text;
 
 			// short link
-			$shortUrl = Str::of($message->text)->match('/https:\/\/on\.soundcloud\.com\/[A-Za-z0-9_-]+/')->value();
+			$shortUrl = Str::of($rawText)->match('/https:\/\/on\.soundcloud\.com\/[A-Za-z0-9_-]+/')->value();
 
 			if (! empty($shortUrl)) {
 				if ($trackInfo = SoundcloudTrack::whereShortUrl($shortUrl)->first()) {
@@ -43,13 +43,17 @@ class DownloadSoundcloudTrackHandler extends AbstractTelegramHandler
 						$trackInfo->update(['short_url' => $shortUrl]);
 
 						$trackInfo->send();
+
+						return;
 					}
 				}
 			} else {
-				$trackUrl = Str::of($message->text)->match('/https:\/\/soundcloud\.com\/[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+/')->value();
+				$trackUrl = Str::of($rawText)->match('/https:\/\/soundcloud\.com\/[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+/')->value();
 
 				if ($trackInfo = SoundcloudTrack::wherePageUrl($trackUrl)->first()) {
 					$trackInfo->send();
+
+					return;
 				}
 			}
 
