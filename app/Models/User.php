@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -43,6 +44,9 @@ use Illuminate\Notifications\Notifiable;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereLastName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereTelegramId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUsername($value)
+ *
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\SoundcloudTrack> $soundcloudTracks
+ * @property-read int|null $soundcloud_tracks_count
  *
  * @mixin \Eloquent
  */
@@ -88,5 +92,20 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Get all soundcloud tracks through the user_soundcloud_tracks table.
+     */
+    public function soundcloudTracks(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            SoundcloudTrack::class,
+            UserSoundcloudTrack::class,
+            'user_id',           // FK на users в промежуточной таблице
+            'id',                // PK в soundcloud_tracks
+            'id',                // PK в users
+            'soundcloud_track_id' // FK на soundcloud_tracks в промежуточной таблице
+        );
     }
 }

@@ -19,10 +19,10 @@ class TrackInfoData extends Data
         public int $timestamp,
         public string $title,
         public string $track,
-        public string $description,
+        public ?string $description,
         /** @var DataCollection<ThumbnailData> */
         #[DataCollectionOf(ThumbnailData::class)]
-        public DataCollection $thumbnails,
+        public ?DataCollection $thumbnails,
         public float $duration,
         /** @var string[] */
         public ?array $genres,
@@ -32,7 +32,7 @@ class TrackInfoData extends Data
         public ?array $artists,
         /** @var DataCollection<FormatData> */
         #[DataCollectionOf(FormatData::class)]
-        public DataCollection $formats,
+        public ?DataCollection $formats,
         public string $page_url = '',
         public string $short_url = '',
     ) {

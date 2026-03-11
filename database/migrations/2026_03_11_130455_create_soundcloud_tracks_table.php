@@ -20,7 +20,7 @@ return new class extends Migration
             $table->timestamp('timestamp');
             $table->string('title');
             $table->string('track');
-            $table->text('description');
+            $table->text('description')->nullable();
             $table->float('duration');
             $table->string('page_url');
             $table->string('short_url')->nullable();

@@ -5,7 +5,9 @@ namespace App\Models;
 use App\Data\Soundcloud\TrackInfoData;
 use App\Telegram\Keyboards\Inline\Soundcloud\Track\TrackInlineKeyboardFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Auth;
 use Lowel\Telepath\Facades\Extrasense;
 use Lowel\Telepath\Facades\SpiritBox;
 use Phptg\BotApi\Type\InputFile;
@@ -57,6 +59,9 @@ use Phptg\BotApi\Type\ReplyParameters;
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SoundcloudTrack whereFileId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SoundcloudTrack whereShortUrl($value)
+ *
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $users
+ * @property-read int|null $users_count
  *
  * @mixin \Eloquent
  */
@@ -122,6 +127,19 @@ class SoundcloudTrack extends Model
         return $this->hasMany(SoundcloudFormat::class, 'track_id');
     }
 
+    /**
+     * Get the users that have this track.
+     */
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            User::class,
+            'user_soundcloud_tracks',
+            'soundcloud_track_id',
+            'user_id'
+        );
+    }
+
     public static function createFrom(string $filePath, TrackInfoData $metadata): self
     {
         $thumbnail = $metadata->thumbnails->toCollection()->where('width', 300)->where('height', 300)->first();
@@ -145,6 +163,8 @@ class SoundcloudTrack extends Model
 
         $soundcloudTrack->thumbnails()->createMany($metadata->thumbnails->toArray());
         $soundcloudTrack->formats()->createMany($metadata->formats->toArray());
+
+        $soundcloudTrack->users()->attach(Auth::guard('telegram')->user());
 
         return $soundcloudTrack;
     }
