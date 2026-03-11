@@ -12,10 +12,10 @@ use Lowel\Telepath\Core\Router\Keyboard\KeyboardFactoryInterface;
 
 class TrackInlineKeyboardFactory implements KeyboardFactoryInterface
 {
-	public function make(): KeyboardBuilderInterface
-	{
-		$builder = new InlineKeyboardBuilder;
+    public function make(): KeyboardBuilderInterface
+    {
+        $builder = new InlineKeyboardBuilder;
 
-		return $builder->row(new CoverUrlInlineButton, new PageUrlInlineButton);
-	}
+        return $builder->row(new CoverUrlInlineButton, new PageUrlInlineButton);
+    }
 }

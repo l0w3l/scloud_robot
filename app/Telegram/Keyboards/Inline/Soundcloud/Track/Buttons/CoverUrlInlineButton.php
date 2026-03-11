@@ -10,16 +10,16 @@ use Lowel\Telepath\Core\Router\Keyboard\Buttons\Inline\AbstractUrlButton;
 
 class CoverUrlInlineButton extends AbstractUrlButton
 {
-	/**
-	 * @param  array{cover?: ThumbnailData|SoundcloudThumbnail}  $args
-	 */
-	public function url(array $args = []): int|string|callable
-	{
-		return $args['cover']->url;
-	}
+    /**
+     * @param  array{cover?: ThumbnailData|SoundcloudThumbnail}  $args
+     */
+    public function url(array $args = []): int|string|callable
+    {
+        return $args['cover']->url;
+    }
 
-	public function text(array $args = []): int|string|callable
-	{
-		return '🖼';
-	}
+    public function text(array $args = []): int|string|callable
+    {
+        return '🖼';
+    }
 }

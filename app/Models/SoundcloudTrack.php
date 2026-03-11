@@ -52,6 +52,12 @@ use Phptg\BotApi\Type\ReplyParameters;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SoundcloudTrack whereUploader($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SoundcloudTrack whereUploaderId($value)
  *
+ * @property string|null $file_id
+ * @property string|null $short_url
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SoundcloudTrack whereFileId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SoundcloudTrack whereShortUrl($value)
+ *
  * @mixin \Eloquent
  */
 class SoundcloudTrack extends Model

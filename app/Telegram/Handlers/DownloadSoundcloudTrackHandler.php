@@ -16,81 +16,81 @@ use Phptg\BotApi\Type\Message;
 
 class DownloadSoundcloudTrackHandler extends AbstractTelegramHandler
 {
-	public function handler(): callable
-	{
-		return static function (YtDlpServiceFactory $ytDlpServiceFactory, Message $message): void {
-			$soundcloudService = $ytDlpServiceFactory->soundcloud();
+    public function handler(): callable
+    {
+        return static function (YtDlpServiceFactory $ytDlpServiceFactory, Message $message): void {
+            $soundcloudService = $ytDlpServiceFactory->soundcloud();
 
-			$rawText = $message->text;
+            $rawText = $message->text;
 
-			// short link
-			$shortUrl = Str::of($rawText)->match('/https:\/\/on\.soundcloud\.com\/[A-Za-z0-9_-]+/')->value();
+            // short link
+            $shortUrl = Str::of($rawText)->match('/https:\/\/on\.soundcloud\.com\/[A-Za-z0-9_-]+/')->value();
 
-			if (! empty($shortUrl)) {
-				if ($trackInfo = SoundcloudTrack::whereShortUrl($shortUrl)->first()) {
-					$trackInfo->send();
+            if (! empty($shortUrl)) {
+                if ($trackInfo = SoundcloudTrack::whereShortUrl($shortUrl)->first()) {
+                    $trackInfo->send();
 
-					return;
-				} else {
-					$response = Http::withOptions([
-						'allow_redirects' => false,
-					])->get($shortUrl);
+                    return;
+                } else {
+                    $response = Http::withOptions([
+                        'allow_redirects' => false,
+                    ])->get($shortUrl);
 
-					$directLink = $response->header('Location');
-					$trackUrl = Str::of($directLink)->match('/https:\/\/soundcloud\.com\/[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+/')->value();
+                    $directLink = $response->header('Location');
+                    $trackUrl = Str::of($directLink)->match('/https:\/\/soundcloud\.com\/[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+/')->value();
 
-					if ($trackInfo = SoundcloudTrack::wherePageUrl($trackUrl)->first()) {
-						$trackInfo->update(['short_url' => $shortUrl]);
+                    if ($trackInfo = SoundcloudTrack::wherePageUrl($trackUrl)->first()) {
+                        $trackInfo->update(['short_url' => $shortUrl]);
 
-						$trackInfo->send();
+                        $trackInfo->send();
 
-						return;
-					}
-				}
-			} else {
-				$trackUrl = Str::of($rawText)->match('/https:\/\/soundcloud\.com\/[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+/')->value();
+                        return;
+                    }
+                }
+            } else {
+                $trackUrl = Str::of($rawText)->match('/https:\/\/soundcloud\.com\/[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+/')->value();
 
-				if ($trackInfo = SoundcloudTrack::wherePageUrl($trackUrl)->first()) {
-					$trackInfo->send();
+                if ($trackInfo = SoundcloudTrack::wherePageUrl($trackUrl)->first()) {
+                    $trackInfo->send();
 
-					return;
-				}
-			}
+                    return;
+                }
+            }
 
-			if (empty($trackUrl)) {
-				return;
-			}
+            if (empty($trackUrl)) {
+                return;
+            }
 
-			$message = SpiritBox::replyMessage('Metadata');
+            $message = SpiritBox::replyMessage('Metadata');
 
-			$metadata = $soundcloudService->getInfo($trackUrl);
-			$metadata->page_url = $trackUrl;
-			$metadata->short_url = $shortUrl;
+            $metadata = $soundcloudService->getInfo($trackUrl);
+            $metadata->page_url = $trackUrl;
+            $metadata->short_url = $shortUrl;
 
-			foreach ($metadata->formats as $format) {
-				if ($format->filesize_approx / 1024 / 1024 > 45) {
-					SpiritBox::deleteMessage($message->chat->id, $message->messageId);
+            foreach ($metadata->formats as $format) {
+                if ($format->filesize_approx / 1024 / 1024 > 45) {
+                    SpiritBox::deleteMessage($message->chat->id, $message->messageId);
 
-					SpiritBox::replyMessage('File too heavy and cannot be downloaded');
-				}
-			}
+                    SpiritBox::replyMessage('File too heavy and cannot be downloaded');
+                }
+            }
 
-			if ($trackInfo = SoundcloudTrack::whereSoundcloudId($metadata->soundcloud_id)->first()) {
-				$trackInfo->send();
+            if ($trackInfo = SoundcloudTrack::whereSoundcloudId($metadata->soundcloud_id)->first()) {
+                $trackInfo->send();
 
-				return;
-			}
+                return;
+            }
 
-			DB::transaction(function () use ($metadata, $soundcloudService, $trackUrl, $message): void {
-				SpiritBox::editMessageText('Preparations', chatId: $message->chat->id, messageId: $message->messageId);
+            DB::transaction(function () use ($metadata, $soundcloudService, $trackUrl, $message): void {
+                SpiritBox::editMessageText('Preparations', chatId: $message->chat->id, messageId: $message->messageId);
 
-				$filePath = $soundcloudService->download($trackUrl, function (EventData $event) {});
+                $filePath = $soundcloudService->download($trackUrl, function (EventData $event) {});
 
-				SoundcloudTrack::createFrom($filePath, $metadata)
-					->send();
+                SoundcloudTrack::createFrom($filePath, $metadata)
+                    ->send();
 
-				SpiritBox::deleteMessage(chatId: $message->chat->id, messageId: $message->messageId);
-			});
-		};
-	}
+                SpiritBox::deleteMessage(chatId: $message->chat->id, messageId: $message->messageId);
+            });
+        };
+    }
 }

@@ -32,6 +32,18 @@ use Illuminate\Notifications\Notifiable;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereRememberToken($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUpdatedAt($value)
  *
+ * @property int $telegram_id
+ * @property string $first_name
+ * @property string|null $last_name
+ * @property string|null $username
+ * @property int $is_bot
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereFirstName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereIsBot($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereLastName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereTelegramId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUsername($value)
+ *
  * @mixin \Eloquent
  */
 class User extends Authenticatable
@@ -45,6 +57,11 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
+        'telegram_id',
+        'username',
+        'is_bot',
+        'first_name',
+        'last_name',
         'name',
         'email',
         'password',
