@@ -53,6 +53,9 @@ use Illuminate\Support\Carbon;
  *
  * @property-read Collection<int, SoundcloudTrack> $soundcloudTracks
  * @property-read int|null $soundcloud_tracks_count
+ * @property string $language_code
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereLanguageCode($value)
  *
  * @mixin \Eloquent
  */
@@ -70,6 +73,7 @@ class User extends Authenticatable
         'telegram_id',
         'username',
         'is_bot',
+        'language_code',
         'first_name',
         'last_name',
         'name',

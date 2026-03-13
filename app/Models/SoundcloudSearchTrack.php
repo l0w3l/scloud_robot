@@ -22,6 +22,8 @@ use Illuminate\Support\Carbon;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SoundcloudSearchTrack whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SoundcloudSearchTrack whereWebpageUrl($value)
  *
+ * @property-read SoundcloudTrack|null $soundcloudTrack
+ *
  * @mixin \Eloquent
  */
 class SoundcloudSearchTrack extends Model

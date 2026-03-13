@@ -104,7 +104,7 @@ class ChosenSearchTrackResultHandler extends AbstractTelegramHandler
                     } elseif ($eventData->service === 'Metadata') {
                         $downloadThrottle(fn () => SpiritBox::editMessageCaption(
                             inlineMessageId: $chosenResult->inlineMessageId,
-                            caption: __('telegram.soundcloud.inline.chosen.metadata'),
+                            caption: __('telegram.soundcloud.inline.chosen.thumnail'),
                         ));
                     }
                 });
