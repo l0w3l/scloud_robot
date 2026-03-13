@@ -30,7 +30,7 @@ RUN apt-get update && apt-get install -y \
       "yt-dlp[default,curl-cffi]" \
       yt-dlp-ejs \
  && docker-php-ext-configure gd --with-jpeg --with-webp \
- && docker-php-ext-install gmp pdo mbstring exif pcntl bcmath gd zip bz2 \
+ && docker-php-ext-install gmp pdo pdo_pgsql mbstring exif pcntl bcmath gd zip bz2 \
  && pecl install redis imagick \
  && docker-php-ext-enable redis imagick \
  && rm -rf /var/lib/apt/lists/*
