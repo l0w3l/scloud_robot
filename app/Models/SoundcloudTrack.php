@@ -142,7 +142,7 @@ class SoundcloudTrack extends Model
             'user_soundcloud_tracks',
             'soundcloud_track_id',
             'user_id'
-        );
+        )->withTimestamps();
     }
 
     public static function createFrom(string $filePath, TrackInfoData $metadata): self

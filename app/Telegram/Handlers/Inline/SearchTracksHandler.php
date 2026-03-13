@@ -34,7 +34,7 @@ class SearchTracksHandler extends AbstractTelegramHandler
             $existedTrack = $telegramService->resolveSoundcloudLink($inlineQuery->query);
 
             if ($existedTrack instanceof SoundcloudTrack) {
-                return self::anserInlineQuery($existedTrack);
+                return self::answerInlineQuery($existedTrack);
             } elseif (is_string($trackUrl = $existedTrack)) {
                 try {
                     $metadata = $telegramService->collectSoundcloudMetadata($trackUrl);
@@ -43,13 +43,13 @@ class SearchTracksHandler extends AbstractTelegramHandler
                 }
 
                 if ($existedTrack = SoundcloudTrack::whereSoundcloudId($metadata->soundcloud_id)->first()) {
-                    return self::anserInlineQuery($existedTrack);
+                    return self::answerInlineQuery($existedTrack);
                 }
 
                 DB::transaction(function () use ($metadata, $telegramService, $trackUrl): void {
                     $track = $telegramService->downloadSoundcloudTrack($trackUrl, $metadata);
 
-                    self::anserInlineQuery($track);
+                    self::answerInlineQuery($track);
                 });
             } else {
                 $rawText = strtolower($inlineQuery->query);
@@ -58,19 +58,23 @@ class SearchTracksHandler extends AbstractTelegramHandler
                     /** @var User */
                     $user = Auth::guard('telegram')->user();
 
-                    $tracksByUser = $user->soundcloudTracks;
+                    $tracksByUser = $user->soundcloudTracks()
+                        ->offset((int) $inlineQuery->offset)
+                        ->limit(self::LIMIT)
+                        ->latest('user_soundcloud_tracks.updated_at')
+                        ->get();
 
-                    return self::anserInlineQuery($tracksByUser->all());
+                    return self::answerInlineQuery($tracksByUser->all());
                 } else {
                     $tracksFromSearch = $telegramService->smartSoundcloudSearch($rawText, (int) $inlineQuery->offset, self::LIMIT);
 
-                    return self::anserInlineQuery($tracksFromSearch);
+                    return self::answerInlineQuery($tracksFromSearch);
                 }
             }
         };
     }
 
-    public static function anserInlineQuery(array|SoundcloudTrack|TrackInfoData $trackInfo): bool|FailResult
+    public static function answerInlineQuery(array|SoundcloudTrack|TrackInfoData $trackInfo): bool|FailResult
     {
         if ($trackInfo instanceof SoundcloudTrack || $trackInfo instanceof TrackInfoData) {
             return SpiritBox::answerInlineQuery(

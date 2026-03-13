@@ -32,10 +32,6 @@ class TelegramGuard implements Guard
      */
     public function user(): ?Authenticatable
     {
-        if ($this->user !== null) {
-            return $this->user;
-        }
-
         $telegramId = Extrasense::user()->id;
 
         if (! $telegramId) {
