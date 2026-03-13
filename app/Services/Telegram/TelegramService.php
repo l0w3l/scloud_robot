@@ -51,7 +51,6 @@ class TelegramService extends AbstractService implements TelegramServiceInterfac
                 return $existedTrack;
             }
         }
-        dump($trackUrl);
         if (! empty($trackUrl)) {
             return $trackUrl;
         }

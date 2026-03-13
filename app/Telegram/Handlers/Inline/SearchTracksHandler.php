@@ -58,7 +58,7 @@ class SearchTracksHandler extends AbstractTelegramHandler
                     /** @var User */
                     $user = Auth::guard('telegram')->user();
 
-                    $tracksByUser = $user->searchTracks($rawText, (int) $inlineQuery->offset, ((int) $inlineQuery->offset + self::LIMIT));
+                    $tracksByUser = $user->soundcloudTracks;
 
                     return self::anserInlineQuery($tracksByUser->all());
                 } else {
@@ -78,6 +78,8 @@ class SearchTracksHandler extends AbstractTelegramHandler
                 results: [
                     self::resolveInlineQueryResult($trackInfo),
                 ],
+                isPersonal: true,
+                cacheTime: 300,
                 button: new InlineQueryResultsButton('@'.Extrasense::profile()->username, startParameter: 'add'),
             );
         } else {
@@ -88,6 +90,8 @@ class SearchTracksHandler extends AbstractTelegramHandler
                 results: [
                     ...array_map(fn (SoundcloudTrack|TrackInfoData $trackInfo) => self::resolveInlineQueryResult($trackInfo), $trackInfoCollection),
                 ],
+                cacheTime: 5,
+                isPersonal: true,
                 nextOffset: (string) ((int) Extrasense::update()->inlineQuery->offset + self::LIMIT),
                 button: new InlineQueryResultsButton('@'.Extrasense::profile()->username, startParameter: 'add'),
             );
