@@ -33,6 +33,7 @@ class TrackInfoData extends Data
         /** @var DataCollection<FormatData> */
         #[DataCollectionOf(FormatData::class)]
         public ?DataCollection $formats,
+        public string $webpage_url = '',
         public string $page_url = '',
         public string $short_url = '',
     ) {

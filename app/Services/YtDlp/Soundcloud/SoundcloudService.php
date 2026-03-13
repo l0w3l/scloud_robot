@@ -39,11 +39,9 @@ class SoundcloudService extends AbstractService implements YtDlpServiceInterface
         $cmd = [
             'yt-dlp',
             '--newline',
-
             '--progress-template',
             // "download:" — это scope, DLJSON — маркер, дальше валидный JSON
             'download:DLJSON:{"status":"%(progress.status)s","percent":"%(progress._percent_str)s","downloaded":"%(progress.downloaded_bytes)s","total":"%(progress.total_bytes)s","total_est":"%(progress.total_bytes_estimate)s","speed":"%(progress.speed)s","eta":"%(progress.eta)s","elapsed":"%(progress.elapsed)s"}',
-
             '-x',
             '--audio-format',
             'mp3',
@@ -70,7 +68,9 @@ class SoundcloudService extends AbstractService implements YtDlpServiceInterface
 
                     logger('yt-dlp event', $event->toArray());
 
-                    $callback($event);
+                    if ($callback !== null) {
+                        $callback($event);
+                    }
                 }
             });
 
@@ -79,5 +79,35 @@ class SoundcloudService extends AbstractService implements YtDlpServiceInterface
         }
 
         return $outputPath;
+    }
+
+    public function search(string $searchText, int $offset, int $limit = 20): array
+    {
+        $limit = $offset + $limit;
+
+        $cmd = [
+            'yt-dlp',
+            '-J',
+            '--match-filter',
+            '"duration > 31 & availability != premium_only"',
+            '--playlist-start',
+            $offset + 1,
+            '--flat-playlist',
+            "\"scsearch{$limit}:{$searchText}\"",
+        ];
+
+        $processResult = Process::run(implode(' ', $cmd));
+
+        if ($processResult->failed()) {
+            throw new BadFormatsException($processResult->errorOutput());
+        }
+
+        $metadataCollection = [];
+
+        foreach (json_decode($processResult->output(), true)['entries'] as $metadata) {
+            $metadataCollection[] = TrackInfoData::from($metadata);
+        }
+
+        return $metadataCollection;
     }
 }

@@ -3,21 +3,27 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
  * @property string $name
  * @property string $email
- * @property \Illuminate\Support\Carbon|null $email_verified_at
+ * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $remember_token
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read DatabaseNotificationCollection<int, DatabaseNotification> $notifications
  * @property-read int|null $notifications_count
  *
  * @method static \Database\Factories\UserFactory factory($count = null, $state = [])
@@ -45,14 +51,14 @@ use Illuminate\Notifications\Notifiable;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereTelegramId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUsername($value)
  *
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\SoundcloudTrack> $soundcloudTracks
+ * @property-read Collection<int, SoundcloudTrack> $soundcloudTracks
  * @property-read int|null $soundcloud_tracks_count
  *
  * @mixin \Eloquent
  */
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
     /**
@@ -96,6 +102,8 @@ class User extends Authenticatable
 
     /**
      * Get all soundcloud tracks through the user_soundcloud_tracks table.
+     *
+     * @return HasManyThrough<SoundcloudTrack, UserSoundcloudTrack, $this>
      */
     public function soundcloudTracks(): HasManyThrough
     {
@@ -107,5 +115,21 @@ class User extends Authenticatable
             'id',                // PK в users
             'soundcloud_track_id' // FK на soundcloud_tracks в промежуточной таблице
         );
+    }
+
+    /**
+     * @return Collection<int, SoundcloudTrack>
+     */
+    public function searchTracks(string $rawText, int $offset, int $limit): Collection
+    {
+        return $this->soundcloudTracks()
+            ->whereRaw('LOWER(title) LIKE ?', ["%{$rawText}%"])
+            ->orWhereRaw('LOWER(track) LIKE ?', ["%{$rawText}%"])
+            ->orWhereRaw('LOWER(artists) LIKE ?', ["%{$rawText}%"])
+            ->orWhereRaw('LOWER(uploader) LIKE ?', ["%{$rawText}%"])
+            ->latest()
+            ->offset($offset)
+            ->limit($limit)
+            ->get();
     }
 }

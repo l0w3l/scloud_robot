@@ -20,4 +20,9 @@ interface YtDlpServiceInterface extends ServiceInterface
      * @return TInfo
      */
     public function getInfo(string $url);
+
+    /**
+     * @return TInfo[]
+     */
+    public function search(string $searchText, int $offset, int $limit = 20): array;
 }

@@ -4,15 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
  * @property int $user_id
  * @property int $soundcloud_track_id
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\User $user
- * @property-read \App\Models\SoundcloudTrack $soundcloudTrack
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read User $user
+ * @property-read SoundcloudTrack $soundcloudTrack
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserSoundcloudTrack newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserSoundcloudTrack newQuery()

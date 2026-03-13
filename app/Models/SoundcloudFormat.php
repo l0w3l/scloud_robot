@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -13,10 +14,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $quality
  * @property int $filesize_approx
  * @property string $format
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property int $track_id
- * @property-read \App\Models\SoundcloudTrack $track
+ * @property-read SoundcloudTrack $track
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SoundcloudFormat newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SoundcloudFormat newQuery()
