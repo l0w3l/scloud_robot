@@ -10,8 +10,9 @@ class StreamController extends Controller
 {
     public function stream(string $hash, FFMpegServiceInterface $fFMpegService, YtDlpServiceFactory $ytDlpServiceFactory)
     {
+        $cleanHash = str_replace('.mp3', '', $hash);
         // Расшифровываем URL из хэша (или берем из БД/кэша)
-        $url = base64_decode($hash);
+        $url = base64_decode($cleanHash);
 
         // 1. Telegram часто проверяет доступность через HEAD
         if (request()->isMethod('head')) {
@@ -22,7 +23,7 @@ class StreamController extends Controller
 
         // 2. Получаем прямую ссылку (через кэш, чтобы не дергать yt-dlp лишний раз)
         // Срок жизни ссылки обычно 15-20 минут, кэшируем на 10.
-        $streamUrl = Cache::remember('stream_link:'.md5($url), 600, function () use ($ytDlpServiceFactory, $url) {
+        $streamUrl = Cache::remember('stream_link:' . md5($url), 600, function () use ($ytDlpServiceFactory, $url) {
             return $ytDlpServiceFactory->soundcloud()->streamUrl($url);
         });
 
@@ -42,7 +43,7 @@ class StreamController extends Controller
                 'Cache-Control' => 'public, max-age=86400',
             ]);
         } catch (\Exception $e) {
-            \Log::error('FFmpeg Stream Error: '.$e->getMessage());
+            \Log::error('FFmpeg Stream Error: ' . $e->getMessage());
 
             return abort(500);
         }

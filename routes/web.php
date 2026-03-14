@@ -7,7 +7,9 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/soundcloud/stream/{hash}', [StreamController::class, 'stream'])
+    ->where('hash', '.*'); // Это позволит проглотить и хэш, и .mp3 в конце
+
 Route::prefix('/soundcloud')->group(function () {
-    Route::get('/stream/{hash}.mp3', [StreamController::class, 'stream'])->name('soundcloud.stream');
     Route::options('/stream/{hash}.mp3', [StreamController::class, 'stream']);
 });
