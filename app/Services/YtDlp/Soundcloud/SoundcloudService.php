@@ -7,6 +7,7 @@ namespace App\Services\YtDlp\Soundcloud;
 use App\Data\Soundcloud\TrackInfoData;
 use App\Exceptions\Services\Soundcloud\BadFormatsException;
 use App\Services\YtDlp\YtDlpServiceInterface;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -109,5 +110,25 @@ class SoundcloudService extends AbstractService implements YtDlpServiceInterface
         }
 
         return $metadataCollection;
+    }
+
+    public function streamUrl(string $trackUrl): string
+    {
+        return Cache::remember('stream:'.md5($trackUrl), 3600, function () use ($trackUrl) {
+
+            $result = Process::run([
+                'yt-dlp',
+                '-f',
+                'bestaudio',
+                '-g',
+                $trackUrl,
+            ]);
+
+            if (! $result->successful()) {
+                return null;
+            }
+
+            return trim($result->output());
+        });
     }
 }

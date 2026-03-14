@@ -117,7 +117,7 @@ class SearchTracksHandler extends AbstractTelegramHandler
         } else {
             return new InlineQueryResultAudio(
                 id: 'soundcloud_search_tracks_'.$trackInfo->soundcloud_id,
-                audioUrl: 'https://monya52.lowel.dev/storage/voice/file_966.oga',
+                audioUrl: url('/soundcloud/stream', ['url' => $trackInfo->webpage_url]),
                 title: $trackInfo->track,
                 performer: $trackInfo->uploader,
                 replyMarkup: (new TrackInlineKeyboardFactory)->make()->build([
