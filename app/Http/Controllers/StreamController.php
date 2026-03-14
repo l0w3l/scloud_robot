@@ -25,11 +25,12 @@ class StreamController extends Controller
             abort(500, 'Stream not found');
         }
 
-        return response()->stream(static function () use ($fFMpegService, $streamUrl) {
-            $fFMpegService->streamMp3($streamUrl);
-        }, 200, [
+        $filePath = $fFMpegService->getFragmentPath($streamUrl);
+
+        return response()->file($filePath, [
             'Content-Type' => 'audio/mpeg',
-            'Cache-Control' => 'no-cache',
+            'Content-Length' => filesize($filePath),
+            'Cache-Control' => 'public, max-age=3600',
         ]);
     }
 }

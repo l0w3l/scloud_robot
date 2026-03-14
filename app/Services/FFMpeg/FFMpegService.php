@@ -29,4 +29,35 @@ class FFMpegService extends AbstractService implements FFMpegServiceInterface
                 flush();
             });
     }
+
+    public function getFragmentPath(string $streamUrl, int $duration = 10): string
+    {
+        $hash = md5($streamUrl.$duration);
+        $path = storage_path("app/tmp/{$hash}.mp3");
+
+        if (! file_exists($path)) {
+            $command = [
+                'ffmpeg',
+                '-loglevel',
+                'error',
+                '-ss',
+                '0',
+                '-i',
+                $streamUrl,
+                '-t',
+                (string) $duration,
+                '-vn',
+                '-acodec',
+                'libmp3lame',
+                '-ab',
+                '192k',
+                '-y', // перезаписать если есть
+                $path,
+            ];
+
+            Process::run($command);
+        }
+
+        return $path;
+    }
 }
