@@ -19,7 +19,7 @@ class StreamController extends Controller
                 ->header('Accept-Ranges', 'bytes');
         }
 
-        $streamUrl = Cache::remember('stream_link:' . md5($url), 600, function () use ($ytDlpServiceFactory, $url) {
+        $streamUrl = Cache::remember('stream_link:'.md5($url), 600, function () use ($ytDlpServiceFactory, $url) {
             return $ytDlpServiceFactory->soundcloud()->streamUrl($url);
         });
 
@@ -37,7 +37,7 @@ class StreamController extends Controller
                 'Cache-Control' => 'public, max-age=86400',
             ]);
         } catch (\Exception $e) {
-            \Log::error('FFmpeg Stream Error: ' . $e->getMessage());
+            \Log::error('FFmpeg Stream Error: '.$e->getMessage());
 
             return abort(500);
         }

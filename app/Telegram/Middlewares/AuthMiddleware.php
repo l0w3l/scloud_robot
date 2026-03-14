@@ -27,7 +27,7 @@ class AuthMiddleware extends AbstractTelegramMiddleware
                     'last_name' => $tgUser->lastName,
                     'username' => $tgUser->username,
                 ]);
-            } catch (UserNotFoundInCurrentContextException | UpdateNotFoundInCurrentContextException $e) {
+            } catch (UserNotFoundInCurrentContextException|UpdateNotFoundInCurrentContextException $e) {
                 $tgUser = Extrasense::user();
 
                 User::create([

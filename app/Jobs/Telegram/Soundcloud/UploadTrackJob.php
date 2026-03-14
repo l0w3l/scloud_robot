@@ -9,6 +9,7 @@ use App\Services\Redis\RedisServiceInterface;
 use App\Services\Telegram\TelegramServiceInterface;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Lowel\Telepath\Facades\Extrasense;
 use Lowel\Telepath\Facades\SpiritBox;
@@ -34,6 +35,8 @@ class UploadTrackJob implements ShouldQueue
     public function handle(): void
     {
         Extrasense::imaginate($this->context, function () {
+            app()->setLocale(Auth::guard('telegram')->user()->language_code);
+
             $telegramService = app()->make(TelegramServiceInterface::class);
             $message = SpiritBox::replyMessage(__('telegram.soundcloud.handlers.link.metadata'));
 

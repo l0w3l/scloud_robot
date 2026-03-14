@@ -12,7 +12,7 @@ class FFMpegService extends AbstractService implements FFMpegServiceInterface
     public function getFragmentPath(string $originalTrackUrl, string $streamUrl, int $duration = 10): string
     {
         // Используем оригинальный URL для кэша, так как $streamUrl всегда разный
-        $hash = md5($originalTrackUrl . $duration);
+        $hash = md5($originalTrackUrl.$duration);
         $path = storage_path("app/tmp/{$hash}.mp3");
 
         if (file_exists($path)) {
@@ -38,7 +38,7 @@ class FFMpegService extends AbstractService implements FFMpegServiceInterface
             '-i',
             $streamUrl,
             '-t',
-            (string)$duration,
+            (string) $duration,
             '-vn',
             '-acodec',
             'libmp3lame',
