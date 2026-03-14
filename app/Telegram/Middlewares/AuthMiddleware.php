@@ -26,11 +26,8 @@ class AuthMiddleware extends AbstractTelegramMiddleware
                     'first_name' => $tgUser->firstName,
                     'last_name' => $tgUser->lastName,
                     'username' => $tgUser->username,
-                    'telegram_id' => $tgUser->id,
-                    'language_code' => $tgUser->languageCode ?? 'en',
-                    'is_bot' => $tgUser->isBot,
                 ]);
-            } catch (UserNotFoundInCurrentContextException|UpdateNotFoundInCurrentContextException $e) {
+            } catch (UserNotFoundInCurrentContextException | UpdateNotFoundInCurrentContextException $e) {
                 $tgUser = Extrasense::user();
 
                 User::create([
@@ -46,8 +43,6 @@ class AuthMiddleware extends AbstractTelegramMiddleware
             }
 
             if (! $user->is_bot) {
-                app()->setLocale($user->language_code);
-
                 $callback();
             }
         };
