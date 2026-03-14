@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('soundcloud_tracks', function (Blueprint $table) {
             $table->id();
             $table->string('file_id')->nullable();
-            $table->integer('soundcloud_id')->unique();
+            $table->bigInteger('soundcloud_id')->unique();
             $table->string('uploader');
             $table->integer('uploader_id');
             $table->timestamp('timestamp');

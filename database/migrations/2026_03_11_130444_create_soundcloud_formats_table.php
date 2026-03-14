@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('soundcloud_formats', function (Blueprint $table) {
             $table->id();
             $table->string('format_id');
-            $table->string('url');
+            $table->text('url');
             $table->string('protocol');
             $table->integer('quality');
             $table->bigInteger('filesize_approx');

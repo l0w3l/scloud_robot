@@ -27,7 +27,7 @@ class AuthMiddleware extends AbstractTelegramMiddleware
                     'last_name' => $tgUser->lastName,
                     'username' => $tgUser->username,
                     'telegram_id' => $tgUser->id,
-                    'language_code' => $tgUser->languageCode,
+                    'language_code' => $tgUser->languageCode ?? 'en',
                     'is_bot' => $tgUser->isBot,
                 ]);
             } catch (UserNotFoundInCurrentContextException|UpdateNotFoundInCurrentContextException $e) {
@@ -37,7 +37,7 @@ class AuthMiddleware extends AbstractTelegramMiddleware
                     'first_name' => $tgUser->firstName,
                     'last_name' => $tgUser->lastName,
                     'username' => $tgUser->username,
-                    'language_code' => $tgUser->languageCode,
+                    'language_code' => $tgUser->languageCode ?? 'en',
                     'telegram_id' => $tgUser->id,
                     'is_bot' => $tgUser->isBot,
                 ]);
