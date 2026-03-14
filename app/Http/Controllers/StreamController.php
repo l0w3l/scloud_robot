@@ -4,27 +4,48 @@ namespace App\Http\Controllers;
 
 use App\Services\FFMpeg\FFMpegServiceInterface;
 use App\Services\YtDlp\YtDlpServiceFactory;
+use Illuminate\Support\Facades\Cache;
 
 class StreamController extends Controller
 {
     public function stream(FFMpegServiceInterface $fFMpegService, YtDlpServiceFactory $ytDlpServiceFactory)
     {
-        $url = request('url');
+        $url = request('url'); // Оригинальный URL SoundCloud
 
         if (! $url) {
-            abort(400, 'No URL');
+            abort(400);
         }
 
+        // 1. Telegram часто проверяет доступность через HEAD
         if (request()->isMethod('head')) {
-            return response('', 200)->header('Content-Type', 'audio/mpeg');
+            return response('', 200)
+                ->header('Content-Type', 'audio/mpeg')
+                ->header('Accept-Ranges', 'bytes');
         }
 
-        $filePath = $ytDlpServiceFactory->soundcloud()->downloadSection($url);
+        // 2. Получаем прямую ссылку (через кэш, чтобы не дергать yt-dlp лишний раз)
+        // Срок жизни ссылки обычно 15-20 минут, кэшируем на 10.
+        $streamUrl = Cache::remember('stream_link:'.md5($url), 600, function () use ($ytDlpServiceFactory, $url) {
+            return $ytDlpServiceFactory->soundcloud()->streamUrl($url);
+        });
 
-        return response()->file($filePath, [
-            'Content-Type' => 'audio/mpeg',
-            'Content-Length' => filesize($filePath),
-            'Cache-Control' => 'public, max-age=3600',
-        ]);
+        if (! $streamUrl) {
+            abort(404);
+        }
+
+        try {
+            // 3. Создаем фрагмент
+            $file = $fFMpegService->getFragmentPath($url, $streamUrl, 10);
+
+            // 4. Отдаем файл
+            return response()->file($file, [
+                'Content-Type' => 'audio/mpeg',
+                'Cache-Control' => 'public, max-age=86400', // Кэшируем на сутки
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('FFmpeg Stream Error: '.$e->getMessage());
+
+            return abort(500);
+        }
     }
 }

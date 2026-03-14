@@ -23,7 +23,7 @@ class SoundcloudService extends AbstractService implements YtDlpServiceInterface
 
     public function getInfo(string $url)
     {
-        $processResult = Process::run("yt-dlp -J '" . htmlspecialchars($url) . "'");
+        $processResult = Process::run("yt-dlp -J '".htmlspecialchars($url)."'");
 
         if ($processResult->failed()) {
             throw new BadFormatsException($processResult->errorOutput());
@@ -114,12 +114,10 @@ class SoundcloudService extends AbstractService implements YtDlpServiceInterface
 
     public function streamUrl(string $trackUrl): string
     {
-        return Cache::remember('stream:' . md5($trackUrl), 3600, function () use ($trackUrl) {
+        return Cache::remember('stream:'.md5($trackUrl), 3600, function () use ($trackUrl) {
 
             $result = Process::run([
                 'yt-dlp',
-                '-f',
-                'bestaudio',
                 '-g',
                 $trackUrl,
             ]);
@@ -134,30 +132,39 @@ class SoundcloudService extends AbstractService implements YtDlpServiceInterface
 
     public function downloadSection(string $trackUrl, int $duration = 10): string
     {
-        $hash = md5($trackUrl . $duration);
+        $hash = md5($trackUrl.$duration);
         $path = storage_path("app/tmp/{$hash}.mp3");
 
-        if (!file_exists($path)) {
+        if (file_exists($path)) {
+            return $path;
+        }
 
-            $command = [
-                'yt-dlp',
-                '-f',
-                'bestaudio',
-                '--download-sections',
-                "*0-$duration",
-                '--extract-audio',
-                '--audio-format',
-                'mp3',
-                '-o',
-                $path,
-                $trackUrl,
-            ];
+        // Создаем директорию если нет
+        if (! is_dir(dirname($path))) {
+            mkdir(dirname($path), 0777, true);
+        }
 
-            Process::run($command);
+        // Оптимизированная команда:
+        // --no-playlist: не тратить время на парсинг плейлиста
+        // --format: выбираем только mp3 или m4a (быстрее обрабатывается)
+        $command = [
+            'yt-dlp',
+            '--no-playlist',
+            '--extract-audio',
+            '--audio-format',
+            'mp3',
+            '--download-sections',
+            "*0-$duration",
+            '--force-keyframes-at-cuts', // Улучшает точность для аудио
+            '-o',
+            $path,
+            $trackUrl,
+        ];
 
-            if (!file_exists($path) || filesize($path) === 0) {
-                throw new \RuntimeException('yt-dlp failed');
-            }
+        $process = Process::run($command);
+
+        if (! $process->successful() || ! file_exists($path)) {
+            throw new RuntimeException('yt-dlp failed: '.$process->errorOutput());
         }
 
         return $path;
