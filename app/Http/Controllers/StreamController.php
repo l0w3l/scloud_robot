@@ -19,13 +19,7 @@ class StreamController extends Controller
             return response('', 200)->header('Content-Type', 'audio/mpeg');
         }
 
-        $streamUrl = $ytDlpServiceFactory->soundcloud()->streamUrl($url);
-
-        if (! $streamUrl) {
-            abort(500, 'Stream not found');
-        }
-
-        $filePath = $fFMpegService->getFragmentPath($streamUrl);
+        $filePath = $ytDlpServiceFactory->soundcloud()->downloadSection($url);
 
         return response()->file($filePath, [
             'Content-Type' => 'audio/mpeg',

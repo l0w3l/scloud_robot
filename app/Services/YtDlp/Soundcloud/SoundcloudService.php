@@ -23,7 +23,7 @@ class SoundcloudService extends AbstractService implements YtDlpServiceInterface
 
     public function getInfo(string $url)
     {
-        $processResult = Process::run("yt-dlp -J '".htmlspecialchars($url)."'");
+        $processResult = Process::run("yt-dlp -J '" . htmlspecialchars($url) . "'");
 
         if ($processResult->failed()) {
             throw new BadFormatsException($processResult->errorOutput());
@@ -114,7 +114,7 @@ class SoundcloudService extends AbstractService implements YtDlpServiceInterface
 
     public function streamUrl(string $trackUrl): string
     {
-        return Cache::remember('stream:'.md5($trackUrl), 3600, function () use ($trackUrl) {
+        return Cache::remember('stream:' . md5($trackUrl), 3600, function () use ($trackUrl) {
 
             $result = Process::run([
                 'yt-dlp',
@@ -130,5 +130,36 @@ class SoundcloudService extends AbstractService implements YtDlpServiceInterface
 
             return trim($result->output());
         });
+    }
+
+    public function downloadSection(string $trackUrl, int $duration = 10): string
+    {
+        $hash = md5($trackUrl . $duration);
+        $path = storage_path("app/tmp/{$hash}.mp3");
+
+        if (!file_exists($path)) {
+
+            $command = [
+                'yt-dlp',
+                '-f',
+                'bestaudio',
+                '--download-sections',
+                "*0-$duration",
+                '--extract-audio',
+                '--audio-format',
+                'mp3',
+                '-o',
+                $path,
+                $trackUrl,
+            ];
+
+            Process::run($command);
+
+            if (!file_exists($path) || filesize($path) === 0) {
+                throw new \RuntimeException('yt-dlp failed');
+            }
+        }
+
+        return $path;
     }
 }
