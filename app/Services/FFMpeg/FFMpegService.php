@@ -12,7 +12,7 @@ class FFMpegService extends AbstractService implements FFMpegServiceInterface
     public function getFragmentPath(string $originalTrackUrl, string $streamUrl, int $duration = 10): string
     {
         // Используем оригинальный URL для кэша, так как $streamUrl всегда разный
-        $hash = md5($originalTrackUrl.$duration);
+        $hash = md5($originalTrackUrl . $duration);
         $path = storage_path("app/tmp/{$hash}.mp3");
 
         if (file_exists($path)) {
@@ -25,23 +25,29 @@ class FFMpegService extends AbstractService implements FFMpegServiceInterface
 
         $command = [
             'ffmpeg',
-            '-y',
-            '-probesize',
-            '32',
-            '-analyzeduration',
-            '0',
+            '-y', // Перезаписывать если файл существует (на случай битых попыток)
+            '-reconnect',
+            '1',
+            '-reconnect_streamed',
+            '1',
+            '-reconnect_delay_max',
+            '5',
+            // 'ss' перед '-i' заставляет ffmpeg искать начало потока мгновенно
             '-ss',
             '0',
             '-i',
             $streamUrl,
             '-t',
-            $duration,
+            (string)$duration,
+            '-vn',
             '-acodec',
             'libmp3lame',
             '-b:a',
-            '96k', // Экономим CPU и трафик
+            '128k', // 128кбит достаточно для превью и быстрее жмется
             '-map_metadata',
-            '-1',
+            '-1', // Удаляем метаданные для уменьшения размера и исключения ошибок
+            '-f',
+            'mp3',
             $path,
         ];
 
