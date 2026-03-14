@@ -8,13 +8,10 @@ use Illuminate\Support\Facades\Cache;
 
 class StreamController extends Controller
 {
-    public function stream(FFMpegServiceInterface $fFMpegService, YtDlpServiceFactory $ytDlpServiceFactory)
+    public function stream(string $hash, FFMpegServiceInterface $fFMpegService, YtDlpServiceFactory $ytDlpServiceFactory)
     {
-        $url = request('url'); // Оригинальный URL SoundCloud
-
-        if (! $url) {
-            abort(400);
-        }
+        // Расшифровываем URL из хэша (или берем из БД/кэша)
+        $url = base64_decode($hash);
 
         // 1. Telegram часто проверяет доступность через HEAD
         if (request()->isMethod('head')) {
@@ -40,7 +37,9 @@ class StreamController extends Controller
             // 4. Отдаем файл
             return response()->file($file, [
                 'Content-Type' => 'audio/mpeg',
-                'Cache-Control' => 'public, max-age=86400', // Кэшируем на сутки
+                'Content-Disposition' => 'inline; filename="track.mp3"',
+                'Accept-Ranges' => 'bytes',
+                'Cache-Control' => 'public, max-age=86400',
             ]);
         } catch (\Exception $e) {
             \Log::error('FFmpeg Stream Error: '.$e->getMessage());

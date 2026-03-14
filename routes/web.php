@@ -8,6 +8,6 @@ Route::get('/', function () {
 });
 
 Route::prefix('/soundcloud')->group(function () {
-    Route::get('/stream', [StreamController::class, 'stream']);
-    Route::options('/stream', [StreamController::class, 'stream']);
+    Route::get('/stream/{hash}.mp3', [StreamController::class, 'stream'])->name('soundcloud.stream');
+    Route::options('/stream/{hash}.mp3', [StreamController::class, 'stream']);
 });
