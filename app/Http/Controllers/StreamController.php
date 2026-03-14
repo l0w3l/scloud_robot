@@ -23,7 +23,7 @@ class StreamController extends Controller
 
         // 2. Получаем прямую ссылку (через кэш, чтобы не дергать yt-dlp лишний раз)
         // Срок жизни ссылки обычно 15-20 минут, кэшируем на 10.
-        $streamUrl = Cache::remember('stream_link:' . md5($url), 600, function () use ($ytDlpServiceFactory, $url) {
+        $streamUrl = Cache::remember('stream_link:'.md5($url), 600, function () use ($ytDlpServiceFactory, $url) {
             return $ytDlpServiceFactory->soundcloud()->streamUrl($url);
         });
 
@@ -41,9 +41,10 @@ class StreamController extends Controller
                 'Content-Disposition' => 'inline; filename="track.mp3"',
                 'Accept-Ranges' => 'bytes',
                 'Cache-Control' => 'public, max-age=86400',
+                'X-Accel-Redirect' => '/internal-storage/'.basename($file),
             ]);
         } catch (\Exception $e) {
-            \Log::error('FFmpeg Stream Error: ' . $e->getMessage());
+            \Log::error('FFmpeg Stream Error: '.$e->getMessage());
 
             return abort(500);
         }

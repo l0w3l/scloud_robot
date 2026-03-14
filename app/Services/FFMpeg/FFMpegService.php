@@ -9,27 +9,6 @@ use Lowel\LaravelServiceMaker\Services\AbstractService;
 
 class FFMpegService extends AbstractService implements FFMpegServiceInterface
 {
-    public function streamMp3(string $streamUrl): void
-    {
-        $command = [
-            'ffmpeg',
-            '-i',
-            $streamUrl,
-            '-vn',
-            '-acodec',
-            'libmp3lame',
-            '-f',
-            'mp3',
-            '-',
-        ];
-
-        Process::start($command)
-            ->wait(function (string $_, string $data) {
-                echo $data;
-                flush();
-            });
-    }
-
     public function getFragmentPath(string $originalTrackUrl, string $streamUrl, int $duration = 10): string
     {
         // Используем оригинальный URL для кэша, так как $streamUrl всегда разный
@@ -46,36 +25,30 @@ class FFMpegService extends AbstractService implements FFMpegServiceInterface
 
         $command = [
             'ffmpeg',
-            '-y', // Перезаписывать если файл существует (на случай битых попыток)
-            '-reconnect',
-            '1',
-            '-reconnect_streamed',
-            '1',
-            '-reconnect_delay_max',
-            '5',
-            // 'ss' перед '-i' заставляет ffmpeg искать начало потока мгновенно
+            '-y',
+            '-probesize',
+            '32',
+            '-analyzeduration',
+            '0',
             '-ss',
             '0',
             '-i',
             $streamUrl,
             '-t',
-            (string) $duration,
-            '-vn',
+            $duration,
             '-acodec',
             'libmp3lame',
             '-b:a',
-            '128k', // 128кбит достаточно для превью и быстрее жмется
+            '96k', // Экономим CPU и трафик
             '-map_metadata',
-            '-1', // Удаляем метаданные для уменьшения размера и исключения ошибок
-            '-f',
-            'mp3',
+            '-1',
             $path,
         ];
 
         // Запускаем процесс. Ограничим время выполнения 15 секундами
         $process = Process::run($command)->throw();
 
-        if (! file_exists($path) || filesize($path) === 0) {
+        if ($process->failed() || ! file_exists($path) || filesize($path) === 0) {
             throw new \RuntimeException('FFmpeg failed to create fragment');
         }
 

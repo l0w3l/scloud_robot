@@ -4,14 +4,36 @@ ARG HOST_UID
 ARG HOST_GID
 
 RUN apt-get update && apt-get install -y \
-    git \
+    pigz \
     unzip \
-    libpq-dev \
-    libzip-dev \
+    libbz2-dev \
+    zlib1g-dev \
+    libpng-dev \
     libgmp-dev \
- && docker-php-ext-install zip pdo pdo_pgsql pcntl gmp \
- && apt-get clean \
+    libpq-dev \
+    libonig-dev \
+    libzip-dev \
+    libmagickwand-dev \
+    curl \
+    git \
+    python3 \
+    python3-pip \
+    python3-venv \
+    ffmpeg \
+    atomicparsley \
+ && curl -fsSL https://deno.land/install.sh | sh \
+ && mv /root/.deno/bin/deno /usr/local/bin/deno \
+ && python3 -m venv /opt/venv \
+ && /opt/venv/bin/pip install --no-cache-dir \
+      "yt-dlp[default,curl-cffi]" \
+      yt-dlp-ejs \
+ && docker-php-ext-configure gd --with-jpeg --with-webp \
+ && docker-php-ext-install gmp pdo pdo_pgsql mbstring exif pcntl bcmath gd zip bz2 \
+ && pecl install redis imagick \
+ && docker-php-ext-enable redis imagick \
  && rm -rf /var/lib/apt/lists/*
+
+ENV PATH="/opt/venv/bin:$PATH"
 
 RUN echo "opcache.enable_cli=0" > /usr/local/etc/php/conf.d/opcache-cli.ini
 
