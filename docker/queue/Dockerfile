@@ -6,9 +6,10 @@ ARG HOST_GID
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
+    libpq-dev \
     libzip-dev \
     libgmp-dev \
- && docker-php-ext-install zip pcntl gmp \
+ && docker-php-ext-install zip pdo pdo_pgsql pcntl gmp \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 

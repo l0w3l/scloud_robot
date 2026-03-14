@@ -84,7 +84,7 @@ class SearchTracksHandler extends AbstractTelegramHandler
                 ],
                 isPersonal: true,
                 cacheTime: 300,
-                button: new InlineQueryResultsButton('@'.Extrasense::profile()->username, startParameter: 'add'),
+                button: new InlineQueryResultsButton('@' . Extrasense::profile()->username, startParameter: 'add'),
             );
         } else {
             $trackInfoCollection = $trackInfo;
@@ -92,12 +92,12 @@ class SearchTracksHandler extends AbstractTelegramHandler
             return SpiritBox::answerInlineQuery(
                 inlineQueryId: Extrasense::update()->inlineQuery->id,
                 results: [
-                    ...array_map(fn (SoundcloudTrack|TrackInfoData $trackInfo) => self::resolveInlineQueryResult($trackInfo), $trackInfoCollection),
+                    ...array_map(fn(SoundcloudTrack|TrackInfoData $trackInfo) => self::resolveInlineQueryResult($trackInfo), $trackInfoCollection),
                 ],
                 cacheTime: 5,
                 isPersonal: true,
                 nextOffset: (string) ((int) Extrasense::update()->inlineQuery->offset + self::LIMIT),
-                button: new InlineQueryResultsButton('@'.Extrasense::profile()->username, startParameter: 'add'),
+                button: new InlineQueryResultsButton('@' . Extrasense::profile()->username, startParameter: 'add'),
             );
         }
     }
@@ -106,9 +106,9 @@ class SearchTracksHandler extends AbstractTelegramHandler
     {
         if ($trackInfo instanceof SoundcloudTrack) {
             return new InlineQueryResultCachedAudio(
-                id: 'soundcloud_tracks_'.$trackInfo->soundcloud_id,
+                id: 'soundcloud_tracks_' . $trackInfo->soundcloud_id,
                 audioFileId: $trackInfo->file_id,
-                caption: '@'.Extrasense::profile()->username,
+                caption: '@' . Extrasense::profile()->username,
                 replyMarkup: (new TrackInlineKeyboardFactory)->make()->build([
                     'song_url' => $trackInfo->page_url,
                     'cover_url' => $trackInfo->thumbnails()->latest()->first()->url,
@@ -116,8 +116,8 @@ class SearchTracksHandler extends AbstractTelegramHandler
             );
         } else {
             return new InlineQueryResultAudio(
-                id: 'soundcloud_search_tracks_'.$trackInfo->soundcloud_id,
-                audioUrl: url('/soundcloud/stream', ['url' => $trackInfo->webpage_url]),
+                id: 'soundcloud_search_tracks_' . $trackInfo->soundcloud_id,
+                audioUrl: url()->query('/soundcloud/stream', ['url' => $trackInfo->webpage_url]),
                 title: $trackInfo->track,
                 performer: $trackInfo->uploader,
                 replyMarkup: (new TrackInlineKeyboardFactory)->make()->build([
