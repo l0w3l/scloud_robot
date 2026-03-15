@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Auth\TelegramGuard;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +21,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Auth::extend('telegram', function ($app, $name, array $config) {
+            return new TelegramGuard(
+                Auth::createUserProvider($config['provider']),
+                $app['request']
+            );
+        });
     }
 }

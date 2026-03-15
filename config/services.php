@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'telegram' => [
+        'storage_chat_id' => env('TELEPATH_STORAGE_CHAT_ID'),
+    ],
+
 ];
