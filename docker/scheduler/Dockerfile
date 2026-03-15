@@ -6,9 +6,13 @@ ARG HOST_GID
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
+    libpq-dev \
+    libmagickwand-dev \
     libzip-dev \
     libgmp-dev \
- && docker-php-ext-install zip pcntl gmp \
+ && pecl install redis imagick \
+ && docker-php-ext-enable redis imagick \
+ && docker-php-ext-install pdo pdo_pgsql zip pcntl gmp \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 

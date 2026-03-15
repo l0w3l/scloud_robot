@@ -7,6 +7,7 @@ namespace App\Services\YtDlp\Soundcloud;
 use App\Data\Soundcloud\TrackInfoData;
 use App\Exceptions\Services\Soundcloud\BadFormatsException;
 use App\Services\YtDlp\YtDlpServiceInterface;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -109,5 +110,63 @@ class SoundcloudService extends AbstractService implements YtDlpServiceInterface
         }
 
         return $metadataCollection;
+    }
+
+    public function streamUrl(string $trackUrl): string
+    {
+        return Cache::remember('stream:'.md5($trackUrl), 3600, function () use ($trackUrl) {
+
+            $result = Process::run([
+                'yt-dlp',
+                '-g',
+                $trackUrl,
+            ]);
+
+            if (! $result->successful()) {
+                return null;
+            }
+
+            return trim($result->output());
+        });
+    }
+
+    public function downloadSection(string $trackUrl, int $duration = 10): string
+    {
+        $hash = md5($trackUrl.$duration);
+        $path = storage_path("app/tmp/{$hash}.mp3");
+
+        if (file_exists($path)) {
+            return $path;
+        }
+
+        // Создаем директорию если нет
+        if (! is_dir(dirname($path))) {
+            mkdir(dirname($path), 0777, true);
+        }
+
+        // Оптимизированная команда:
+        // --no-playlist: не тратить время на парсинг плейлиста
+        // --format: выбираем только mp3 или m4a (быстрее обрабатывается)
+        $command = [
+            'yt-dlp',
+            '--no-playlist',
+            '--extract-audio',
+            '--audio-format',
+            'mp3',
+            '--download-sections',
+            "*0-$duration",
+            '--force-keyframes-at-cuts', // Улучшает точность для аудио
+            '-o',
+            $path,
+            $trackUrl,
+        ];
+
+        $process = Process::run($command);
+
+        if (! $process->successful() || ! file_exists($path)) {
+            throw new RuntimeException('yt-dlp failed: '.$process->errorOutput());
+        }
+
+        return $path;
     }
 }

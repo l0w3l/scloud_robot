@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Auth;
 
+use App\Models\User;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Contracts\Auth\UserProvider;
@@ -41,6 +42,10 @@ class TelegramGuard implements Guard
         $this->user = $this->provider->retrieveByCredentials([
             'telegram_id' => $telegramId,
         ]) ?? throw new UserNotFoundInCurrentContextException('User was not founded in current update context');
+
+        if ($this->user instanceof User) {
+            app()->setLocale($this->user->language_code);
+        }
 
         return $this->user;
     }

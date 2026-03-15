@@ -117,13 +117,15 @@ class SearchTracksHandler extends AbstractTelegramHandler
         } else {
             return new InlineQueryResultAudio(
                 id: 'soundcloud_search_tracks_'.$trackInfo->soundcloud_id,
-                audioUrl: 'https://monya52.lowel.dev/storage/voice/file_966.oga',
+                audioUrl: route('soundcloud.stream', ['hash' => base64_encode($trackInfo->webpage_url)]).'.mp3',
                 title: $trackInfo->track,
                 performer: $trackInfo->uploader,
                 replyMarkup: (new TrackInlineKeyboardFactory)->make()->build([
                     'song_url' => $trackInfo->webpage_url,
                     'cover_url' => $trackInfo->thumbnails->toCollection()->last()->url,
                 ]),
+                audioDuration: 10, // Telegram поймет, что это короткий фрагмент
+
                 inputMessageContent: new InputTextMessageContent(
                     __('telegram.soundcloud.inline.chosen.initial')
                 )
