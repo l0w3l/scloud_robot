@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Data\Soundcloud;
+namespace App\Data\YtDlp;
 
 use Spatie\LaravelData\Data;
 

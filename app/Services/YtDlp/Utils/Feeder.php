@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Services\YtDlp\Soundcloud;
+namespace App\Services\YtDlp\Utils;
 
-use App\Data\Soundcloud\EventData;
+use App\Data\YtDlp\EventData;
 
 final class Feeder
 {

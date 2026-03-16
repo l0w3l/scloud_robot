@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Data\Soundcloud;
+namespace App\Data\YtDlp\Soundcloud;
 
 use Spatie\LaravelData\Attributes\Computed;
 use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\DataCollection;
 
-class TrackInfoData extends Data
+class SoundcloudTrackInfoData extends Data
 {
     #[Computed]
     public int $soundcloud_id;
@@ -20,8 +20,8 @@ class TrackInfoData extends Data
         public string $title,
         public string $track,
         public ?string $description,
-        /** @var DataCollection<ThumbnailData> */
-        #[DataCollectionOf(ThumbnailData::class)]
+        /** @var DataCollection<SoundcloudThumbnailData> */
+        #[DataCollectionOf(SoundcloudThumbnailData::class)]
         public ?DataCollection $thumbnails,
         public float $duration,
         /** @var string[] */
@@ -30,8 +30,8 @@ class TrackInfoData extends Data
         public ?array $tags,
         /** @var string[] */
         public ?array $artists,
-        /** @var DataCollection<FormatData> */
-        #[DataCollectionOf(FormatData::class)]
+        /** @var DataCollection<SoundcloudFormatData> */
+        #[DataCollectionOf(SoundcloudFormatData::class)]
         public ?DataCollection $formats,
         public string $webpage_url = '',
         public string $page_url = '',

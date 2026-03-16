@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Data\Soundcloud;
+namespace App\Data\YtDlp\Soundcloud;
 
 use Spatie\LaravelData\Data;
 
-class FormatData extends Data
+class SoundcloudFormatData extends Data
 {
     public function __construct(
         public string $format_id,

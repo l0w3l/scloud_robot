@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services\Telegram;
 
-use App\Data\Soundcloud\TrackInfoData;
+use App\Data\YtDlp\Soundcloud\SoundcloudTrackInfoData;
+use App\Data\YtDlp\Youtube\YoutubeVideoData;
 use App\Exceptions\TooLargeFileForDownloadException;
 use App\Models\SoundcloudSearchTrack;
 use App\Models\SoundcloudTrack;
+use App\Models\YoutubeVideo;
 use App\Services\YtDlp\YtDlpServiceFactory;
 use Illuminate\Support\Facades\Http;
 use Lowel\LaravelServiceMaker\Services\AbstractService;
@@ -15,9 +17,83 @@ use Str;
 
 class TelegramService extends AbstractService implements TelegramServiceInterface
 {
+    const YOUTUBE_FILESIZE_BYTES = 50_000_000;
+
+    const SOUNDCLOUD_FILESIZE_KILOBYTES = 50_000;
+
     public function __construct(
         public YtDlpServiceFactory $ytDlpServiceFactory,
     ) {}
+
+    public function resolveYoutubeLink(string $rawText): null|string|YoutubeVideo
+    {
+        // short link
+        $videoId = Str::of($rawText)->match('/^(?:https?:\/\/)?(?:(?:www|m|music)\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})(?:[?&].*)?$/')->value();
+
+        if (! empty($videoId)) {
+            if ($existedVideo = YoutubeVideo::whereYoutubeId($videoId)->first()) {
+                return $existedVideo;
+            } else {
+                return $videoId;
+            }
+        }
+
+        return null;
+    }
+
+    public function collectYoutubeMetadata(string $videoUrl): ?YoutubeVideoData
+    {
+        $videoData = $this->ytDlpServiceFactory->youtube()->getInfo($videoUrl);
+
+        $formats = $videoData->formats;
+        $videoData->formats = [];
+
+        // sort by filesize
+        usort($formats, function ($a, $b) {
+            return $a->filesize <=> $b->filesize;
+        });
+
+        $audioCandidate = null; // best audio candidate
+        $resolutionMap = []; // collect same resolutions
+        foreach ($formats as $format) {
+            if (($format->filesize ?? PHP_INT_MAX) < self::YOUTUBE_FILESIZE_BYTES) {
+                if ($format->resolution == 'audio only') {
+                    if ($format->filesize > ($audioCandidate->filesize ?? 0)) {
+                        $audioCandidate = $format;
+                    }
+                } else {
+                    if (($resolutionMap[$format->resolution] ?? null) === null) {
+                        $videoData->formats[] = $format;
+                        $resolutionMap[$format->resolution] = true;
+                    }
+                }
+            }
+        }
+
+        // check sound compability
+        if ($audioCandidate) {
+            foreach ($videoData->formats as &$format) {
+                if ($format->filesize + $audioCandidate->filesize > self::YOUTUBE_FILESIZE_BYTES) {
+                    $format->resolution = 'no audio '.$format->resolution;
+                } else {
+                    $format->filesize += $audioCandidate->filesize;
+                    $format->format_id .= '+'.$audioCandidate->format_id;
+                }
+            }
+
+            $videoData->formats[] = $audioCandidate;
+        } else {
+            foreach ($videoData->formats as &$format) {
+                $format->resolution = 'no audio '.$format->resolution;
+            }
+        }
+
+        if (empty($videoData->formats)) {
+            throw new TooLargeFileForDownloadException('File to large for download');
+        }
+
+        return $videoData;
+    }
 
     public function resolveSoundcloudLink(string $rawText): null|string|SoundcloudTrack
     {
@@ -61,7 +137,7 @@ class TelegramService extends AbstractService implements TelegramServiceInterfac
     /**
      * @throws TooLargeFileForDownloadException
      */
-    public function collectSoundcloudMetadata(string $trackUrl): TrackInfoData
+    public function collectSoundcloudMetadata(string $trackUrl): SoundcloudTrackInfoData
     {
         $metadata = $this->ytDlpServiceFactory
             ->soundcloud()
@@ -78,7 +154,7 @@ class TelegramService extends AbstractService implements TelegramServiceInterfac
         return $metadata;
     }
 
-    public function downloadSoundcloudTrack(string $trackUrl, TrackInfoData $metadata, ?callable $eventHandler = null): SoundcloudTrack
+    public function downloadSoundcloudTrack(string $trackUrl, SoundcloudTrackInfoData $metadata, ?callable $eventHandler = null): SoundcloudTrack
     {
         $storagePath = $this->ytDlpServiceFactory
             ->soundcloud()
@@ -89,7 +165,7 @@ class TelegramService extends AbstractService implements TelegramServiceInterfac
 
     public function smartSoundcloudSearch(string $rawText, int $offset, int $limit): array
     {
-        /** @var TrackInfoData[] */
+        /** @var SoundcloudTrackInfoData[] */
         $tracksFromSearch = $this->ytDlpServiceFactory->soundcloud()->search($rawText, $offset, $limit);
 
         $tracks = [];

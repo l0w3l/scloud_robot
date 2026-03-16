@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Data\Soundcloud\TrackInfoData;
+use App\Data\YtDlp\Soundcloud\SoundcloudTrackInfoData;
 use App\Telegram\Keyboards\Inline\Soundcloud\Track\TrackInlineKeyboardFactory;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -145,7 +145,7 @@ class SoundcloudTrack extends Model
         )->withTimestamps();
     }
 
-    public static function createFrom(string $filePath, TrackInfoData $metadata): self
+    public static function createFrom(string $filePath, SoundcloudTrackInfoData $metadata): self
     {
         $thumbnail = $metadata->thumbnails->toCollection()->where('width', 300)->where('height', 300)->first();
         $cover = $metadata->thumbnails->toCollection()->last();

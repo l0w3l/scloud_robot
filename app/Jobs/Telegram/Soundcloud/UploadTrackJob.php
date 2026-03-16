@@ -2,7 +2,7 @@
 
 namespace App\Jobs\Telegram\Soundcloud;
 
-use App\Data\Soundcloud\EventData;
+use App\Data\YtDlp\EventData;
 use App\Exceptions\TooLargeFileForDownloadException;
 use App\Models\SoundcloudTrack;
 use App\Services\Redis\RedisServiceInterface;

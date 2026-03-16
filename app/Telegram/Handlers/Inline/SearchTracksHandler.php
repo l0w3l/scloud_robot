@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Telegram\Handlers\Inline;
 
-use App\Data\Soundcloud\TrackInfoData;
+use App\Data\YtDlp\Soundcloud\SoundcloudTrackInfoData;
 use App\Exceptions\TooLargeFileForDownloadException;
 use App\Models\SoundcloudTrack;
 use App\Models\User;
@@ -74,9 +74,9 @@ class SearchTracksHandler extends AbstractTelegramHandler
         };
     }
 
-    public static function answerInlineQuery(array|SoundcloudTrack|TrackInfoData $trackInfo): bool|FailResult
+    public static function answerInlineQuery(array|SoundcloudTrack|SoundcloudTrackInfoData $trackInfo): bool|FailResult
     {
-        if ($trackInfo instanceof SoundcloudTrack || $trackInfo instanceof TrackInfoData) {
+        if ($trackInfo instanceof SoundcloudTrack || $trackInfo instanceof SoundcloudTrackInfoData) {
             return SpiritBox::answerInlineQuery(
                 inlineQueryId: Extrasense::update()->inlineQuery->id,
                 results: [
@@ -92,7 +92,7 @@ class SearchTracksHandler extends AbstractTelegramHandler
             return SpiritBox::answerInlineQuery(
                 inlineQueryId: Extrasense::update()->inlineQuery->id,
                 results: [
-                    ...array_map(fn (SoundcloudTrack|TrackInfoData $trackInfo) => self::resolveInlineQueryResult($trackInfo), $trackInfoCollection),
+                    ...array_map(fn (SoundcloudTrack|SoundcloudTrackInfoData $trackInfo) => self::resolveInlineQueryResult($trackInfo), $trackInfoCollection),
                 ],
                 cacheTime: 5,
                 isPersonal: true,
@@ -102,7 +102,7 @@ class SearchTracksHandler extends AbstractTelegramHandler
         }
     }
 
-    public static function resolveInlineQueryResult(SoundcloudTrack|TrackInfoData $trackInfo): InlineQueryResult
+    public static function resolveInlineQueryResult(SoundcloudTrack|SoundcloudTrackInfoData $trackInfo): InlineQueryResult
     {
         if ($trackInfo instanceof SoundcloudTrack) {
             return new InlineQueryResultCachedAudio(

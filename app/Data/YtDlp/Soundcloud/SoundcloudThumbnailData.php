@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Data\Soundcloud;
+namespace App\Data\YtDlp\Soundcloud;
 
 use Spatie\LaravelData\Data;
 
-class ThumbnailData extends Data
+class SoundcloudThumbnailData extends Data
 {
     public function __construct(
         public string $url,

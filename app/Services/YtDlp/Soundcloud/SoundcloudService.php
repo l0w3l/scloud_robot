@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Services\YtDlp\Soundcloud;
 
-use App\Data\Soundcloud\TrackInfoData;
+use App\Data\YtDlp\Soundcloud\SoundcloudTrackInfoData;
 use App\Exceptions\Services\Soundcloud\BadFormatsException;
+use App\Services\YtDlp\Utils\Feeder;
+use App\Services\YtDlp\Utils\OutputParser;
 use App\Services\YtDlp\YtDlpServiceInterface;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Process;
@@ -15,7 +17,7 @@ use Lowel\LaravelServiceMaker\Services\AbstractService;
 use RuntimeException;
 
 /**
- * @implements YtDlpServiceInterface<TrackInfoData>
+ * @implements YtDlpServiceInterface<SoundcloudTrackInfoData>
  */
 class SoundcloudService extends AbstractService implements YtDlpServiceInterface
 {
@@ -29,7 +31,7 @@ class SoundcloudService extends AbstractService implements YtDlpServiceInterface
             throw new BadFormatsException($processResult->errorOutput());
         }
 
-        return TrackInfoData::from($processResult->output());
+        return SoundcloudTrackInfoData::from($processResult->output());
     }
 
     public function download(string $url, ?callable $callback = null, ?string $format = null): string
@@ -106,7 +108,7 @@ class SoundcloudService extends AbstractService implements YtDlpServiceInterface
         $metadataCollection = [];
 
         foreach (json_decode($processResult->output(), true)['entries'] as $metadata) {
-            $metadataCollection[] = TrackInfoData::from($metadata);
+            $metadataCollection[] = SoundcloudTrackInfoData::from($metadata);
         }
 
         return $metadataCollection;
@@ -128,45 +130,5 @@ class SoundcloudService extends AbstractService implements YtDlpServiceInterface
 
             return trim($result->output());
         });
-    }
-
-    public function downloadSection(string $trackUrl, int $duration = 10): string
-    {
-        $hash = md5($trackUrl.$duration);
-        $path = storage_path("app/tmp/{$hash}.mp3");
-
-        if (file_exists($path)) {
-            return $path;
-        }
-
-        // Создаем директорию если нет
-        if (! is_dir(dirname($path))) {
-            mkdir(dirname($path), 0777, true);
-        }
-
-        // Оптимизированная команда:
-        // --no-playlist: не тратить время на парсинг плейлиста
-        // --format: выбираем только mp3 или m4a (быстрее обрабатывается)
-        $command = [
-            'yt-dlp',
-            '--no-playlist',
-            '--extract-audio',
-            '--audio-format',
-            'mp3',
-            '--download-sections',
-            "*0-$duration",
-            '--force-keyframes-at-cuts', // Улучшает точность для аудио
-            '-o',
-            $path,
-            $trackUrl,
-        ];
-
-        $process = Process::run($command);
-
-        if (! $process->successful() || ! file_exists($path)) {
-            throw new RuntimeException('yt-dlp failed: '.$process->errorOutput());
-        }
-
-        return $path;
     }
 }
