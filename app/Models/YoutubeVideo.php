@@ -6,6 +6,7 @@ use App\Data\YtDlp\Youtube\YoutubeThumdnailData;
 use App\Data\YtDlp\Youtube\YoutubeVideoData;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -56,9 +57,9 @@ class YoutubeVideo extends Model
         'tags' => 'array',
     ];
 
-    public function formats()
+    public function formats(): HasMany
     {
-        return $this->hasMany(YoutubeVideoFormat::class)->orderBy('id', 'asc');
+        return $this->hasMany(YoutubeVideoFormat::class)->orderBy('id');
     }
 
     public static function createFor(YoutubeVideoData $youtubeVideoData): self
@@ -77,5 +78,10 @@ class YoutubeVideo extends Model
 
             return $yourubeVideo;
         });
+    }
+
+    public function url(): string
+    {
+        return 'https://youtu.be/'.$this->youtube_id;
     }
 }
