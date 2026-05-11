@@ -10,18 +10,18 @@ INSTALL_NODE_VER=24.12.0
 INSTALL_NVM_VER=0.39.7
 
 echo "==> Ensuring .bashrc exists and is writable"
-touch /root/.bashrc
+touch $HOME/.bashrc
 
 echo "==> Installing node version manager (NVM). Version $INSTALL_NVM_VER"
 # Removed if already installed
-rm -rf /root/.nvm
+rm -rf $HOME/.nvm
 # Unset exported variable
 export NVM_DIR=
 
 # Install nvm
 curl -o- https://raw.githubusercontent.com/creationix/nvm/v$INSTALL_NVM_VER/install.sh | bash
 # Make nvm command available to terminal
-source /root/.nvm/nvm.sh
+source $HOME/.nvm/nvm.sh
 
 echo "==> Installing node js version $INSTALL_NODE_VER"
 nvm install $INSTALL_NODE_VER

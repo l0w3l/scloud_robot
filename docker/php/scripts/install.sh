@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+export HOME=/var/www
+export NVM_DIR="$HOME/.nvm"
+
 # NVM, NPM, COMPOSER INSTALLATION AND BUILD
 
 scripts_folder=/usr/local/bin/scripts

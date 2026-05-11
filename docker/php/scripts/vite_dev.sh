@@ -1,9 +1,7 @@
 #!/bin/bash
-set -e
 
 scripts_folder=/usr/local/bin/scripts
 
 bash "$scripts_folder"/wait_setup.sh
 
-cd /var/www/html
-php artisan queue:work --timeout=600
+bash "$scripts_folder"/processes/run_dev_vite.sh
